@@ -47,6 +47,137 @@ int program2Time = 1000;
 byte state = 0;
 
 
+class Display{
+  private:
+  float timer1;
+  float timeout1;
+  bool timerbit1;
+  int minPos;
+  int maxPos;
+  public:
+    Display(int minShouldPos, int maxShouldPos){
+      timer1 = 0;
+      timeout1 = 5000;
+      timerbit1 = false;
+      minPos = minShouldPos;
+      maxPos = maxShouldPos;
+    }
+    void showWaitScreen(char infotext[]){
+      uint8_t progressbar = 0;
+      for(int i = 0; i < 21; i++){
+        progressbar = progressbar + 5;
+        front.clearBuffer();
+        front.setBitmapMode(1);
+        front.drawFrame(3, 2, 122, 60);
+        front.drawXBMP( 48, 13, 29, 14, image_FaceConfused_29x14_bits);
+        front.drawFrame(9, 48, 110, 10);
+        front.drawBox(11, 50, progressbar, 6);
+        front.setFont(u8g2_font_helvB08_tr);
+        front.drawStr(10, 44, infotext);
+        front.sendBuffer();
+        }
+    }
+    void showCarPositioningScreen(int distance){
+      front.clearBuffer();
+      front.setBitmapMode(1);
+      front.drawXBMP(distance*(-1) + 55, 17, 72, 73, image_car);
+      if(distance >= maxPos){
+        front.setBitmapMode(1);
+        front.setFont(u8g2_font_helvB08_tr);
+        front.drawStr(4, 15, "ANFAHREN!");
+        front.drawXBMP(distance *(-1) + 125, 44, 9, 7, image_Pin_arrow_right_9x7_bits);
+        timerbit1 = false;
+        timer1 = millis();
+      }else if(distance >= minPos && distance <= maxPos){
+        front.setBitmapMode(1);
+        front.setFont(u8g2_font_helvB08_tr);
+        front.drawStr(4, 15, "IN POSITION!");
+        front.drawXBMP( 16, 37, 18, 18, image_Smile_18x18_bits);
+        timerbit1 = true;
+        if(millis() > timer1 + timeout1 && timerbit1 == true){
+          timer1 = millis();
+        }
+      }else if(distance < minPos) {
+        front.setBitmapMode(1);
+        front.setFont(u8g2_font_helvB08_tr);
+        front.drawStr(4, 15, "ZURUECK!");
+        front.drawXBMP(distance *(-1) + 45, 44, 9, 7, image_Pin_arrow_left_9x7_bits);
+        timerbit1 = false;
+        timer1 = millis();
+      }
+      front.sendBuffer();
+    }
+    void showLeaveScreen(){
+      float progressbar = 106;
+      for(int i = 0; i < 106; i++){
+        progressbar = progressbar - 1;
+        front.clearBuffer();
+        front.setBitmapMode(1);
+        front.drawFrame(3, 3, 122, 58);
+        front.drawFrame(9, 48, 110, 10);
+        front.drawXBMP( 98, 22, 10, 8, image_Pin_back_arrow_10x8_bits);
+        front.setFont(u8g2_font_helvB08_tr);
+        front.drawStr(25, 31, "VERLASSEN");
+        front.drawBox(11, 50, progressbar, 6);
+        front.sendBuffer();
+      }
+    }
+    void showChooseScreen(){
+      front.clearBuffer();
+      front.setBitmapMode(1);
+      front.setFont(u8g2_font_helvB08_tr);
+      front.drawStr(13, 13, "PROGRAMM WAHL");
+      front.drawXBMP( 87, 22, 18, 21, image_EviSmile1_18x21_bits);
+      front.drawXBMP( 16, 26, 18, 18, image_Smile_18x18_bits);
+      front.setFont(u8g2_font_helvB08_tr);
+      front.drawStr(13, 57, "PRG1");
+      front.setFont(u8g2_font_helvB08_tr);
+      front.drawStr(84, 56, "PRG2");
+      front.sendBuffer();
+    }
+    void showProgram1Screen(){
+      front.clearBuffer();
+      front.setBitmapMode(1);
+      front.drawFrame(2, 3, 124, 59);
+      front.setFont(u8g2_font_profont22_tr);
+      front.drawStr(17, 22, "PROGRAMM");
+      front.setFont(u8g2_font_helvB08_tr);
+      front.drawStr(63, 39, "1");
+      front.setFont(u8g2_font_haxrcorp4089_tr);
+      front.drawStr(44, 55, "im gange.");
+      front.drawXBMP( 56, 26, 18, 18, image_Button_18x18_bits);
+      front.sendBuffer();
+      // delay(2000);
+    }
+    void showProgram2Screen(){
+      front.clearBuffer();
+      front.setBitmapMode(1);
+      front.drawFrame(2, 3, 124, 59);
+      front.setFont(u8g2_font_profont22_tr);
+      front.drawStr(17, 22, "PROGRAMM");
+      front.setFont(u8g2_font_helvB08_tr);
+      front.drawStr(63, 39, "2");
+      front.setFont(u8g2_font_haxrcorp4089_tr);
+      front.drawStr(44, 55, "im gange.");
+      front.drawXBMP( 56, 26, 18, 18, image_Button_18x18_bits);
+      front.sendBuffer();
+      // delay(2000);
+    }
+    void showDriveOutScreen(int distance){
+      front.clearBuffer();
+      front.setBitmapMode(1);
+      front.drawXBMP(distance, 17, 72, 73, image_car);
+      if(distance >= -60){
+        front.setBitmapMode(1);
+        front.setFont(u8g2_font_helvB08_tr);
+        front.drawStr(4, 15, "ZURUECK!");
+        front.drawXBMP(distance - 4, 44, 9, 7, image_Pin_arrow_left_9x7_bits);
+      }
+      front.sendBuffer();
+    }
+};
+
+
 class Barrier{
   private:
     bool buttonState;
@@ -181,6 +312,7 @@ bool checkTimer(unsigned int startMillis, int timerSeconds){
 
 Barrier barrier(minDangerPos, maxDangerPos);
 UltrasonicSensor sensor(triggerInput, echoInput);
+Display display(minShouldPos, maxShouldPos);
 
 
 void setup() {
@@ -193,6 +325,11 @@ void setup() {
   // servo init
   servo.attach(servoOutputPin);  // Pin 8 als Ausgang benutzen
   barrier.getAngle();
+
+  // display
+  front.setI2CAddress(0x3C * 2);
+  front.begin();
+  display.showWaitScreen("LOADING...");
 }
 
 void loop() {
@@ -208,6 +345,7 @@ void loop() {
 
     // START
     case 0:
+      display.showCarPositioningScreen(distance);
       if (checkPosition(distance) == true){
         state = 1;
       }
@@ -240,6 +378,7 @@ void loop() {
     // choose program - print
     case 3:
       if (checkPosition(distance) == true){
+        display.showChooseScreen();
         Serial.println(F("Choose a wash program"));
         state = 4;
       } else {
@@ -267,6 +406,7 @@ void loop() {
 
     case 5:
       Serial.println(F("In Program 1"));
+      display.showProgram1Screen();
       startMillisPrograms = millis();
       state = 6;
       break;
@@ -280,6 +420,7 @@ void loop() {
 
     case 7:
       Serial.println(F("In Program 2"));
+      display.showProgram2Screen();
       startMillisPrograms = millis();
       state = 8;
       break;
