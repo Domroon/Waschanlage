@@ -4,13 +4,14 @@
 
 https://content.arduino.cc/assets/A000066-full-pinout.pdf
 
-## Servo
+## Barrier Servo
 
+https://www.arduino.cc/reference/en/libraries/servo/
 https://www.amazon.de/Longruner-Helicopter-Airplane-Controls-KY66-5/dp/B07236KYVC?th=1
 
 - brown -> mass
 - red -> +5V
-- orange -> PWM
+- orange -> 8
 
 ## Display
 

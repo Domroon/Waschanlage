@@ -7,12 +7,12 @@ int distance;
 const byte triggerInput = 7;
 const byte echoInput = 6;
 int minShouldPos = 5;
-int maxShouldPos = 9;
-int minDangerPos = 40;
-int maxDangerPos = 60;
+int maxShouldPos = 7;
+int minDangerPos = 7;
+int maxDangerPos = 10;
 
 // inputs
-const byte buttonInputPin = 2;
+const byte barrierTriggerBtn = 2;
 const byte program1Btn = 12;
 const byte program2Btn = 13;
 
@@ -25,6 +25,7 @@ bool barrierTrigger;
 
 // variables for timers
 unsigned int startMillis;
+unsigned int startMillisPrograms;
 bool active = true;
 int positionTime = 3000;
 int program1Time = 5000;
@@ -73,7 +74,7 @@ class Barrier{
       carUnderBarrierFirstIteration = true;
       minDistance = minDis;
       maxDistance = maxDis;
-
+      servo.write(125);
     }
     void openForIntervall(int timeInMs, int distance, bool openTrigger){
       setBarrierState();
@@ -84,12 +85,13 @@ class Barrier{
         Serial.print("Open barrier for ");
         Serial.print(timeInMs);
         Serial.println("ms");
+        getAngle();
       }
 
       checkSecurityDistance(distance);      
 
       if (timeInMs <= millis() - startMillis && !carUnderBarrier && isOpen) { // wenn die Zeit nach dem trigger, time_in_ms überschreitet
-        servo.write(90); //Position 2 ansteuern mit dem Winkel 90° - Schranke schließen
+        servo.write(125); //Position 2 ansteuern mit dem Winkel 90° - Schranke schließen
         firstIteration = true; // Variable zurücksetzen um die Funktion erneut triggern zu können
       }
 
@@ -101,10 +103,14 @@ class Barrier{
       } 
     }
     void open(){
-        servo.write(0); //Position 1 ansteuern mit dem Winkel 0° - Schranke öffnen
+        servo.write(20); //Position 1 ansteuern mit dem Winkel 0° - Schranke öffnen
     }
     void close(){
-        servo.write(90); //Position 2 ansteuern mit dem Winkel 90° - Schranke schließen
+        servo.write(125); //Position 2 ansteuern mit dem Winkel 90° - Schranke schließen
+    }
+    void getAngle(){
+      Serial.print("Barrier Angle in degrees: ");
+      Serial.println(servo.read());
     }
 };
 
@@ -170,28 +176,28 @@ void setup() {
   Serial.println("Start Program");
 
   // input init
-  pinMode(buttonInputPin, INPUT);
+  pinMode(barrierTriggerBtn, INPUT);
 
   // servo init
   servo.attach(servoOutputPin);  // Pin 8 als Ausgang benutzen
+  barrier.getAngle();
 }
 
 void loop() {
   // check inputs
   distance = sensor.calculateDistance();
-  barrierTrigger = digitalRead(buttonInputPin);
+  barrierTrigger = digitalRead(barrierTriggerBtn);
+  
+  // control barrier
+  barrier.openForIntervall(2000, distance, barrierTrigger);
 
   // execute state
   switch(state) {
 
     // START
     case 0:
-      if (barrier.isOpen == false){
-        barrier.open();
-      }
       if (checkPosition(distance) == true){
         state = 1;
-        barrier.close();
       }
       break;
 
@@ -249,26 +255,26 @@ void loop() {
 
     case 5:
       Serial.println("In Program 1");
-      startMillis = millis();
+      startMillisPrograms = millis();
       state = 6;
       break;
 
     case 6:
       // execute program 1 here
-      if (checkTimer(startMillis, program1Time) == true){
+      if (checkTimer(startMillisPrograms, program1Time) == true){
           state = 9;
       } 
       break;
 
     case 7:
       Serial.println("In Program 2");
-      startMillis = millis();
+      startMillisPrograms = millis();
       state = 8;
       break;
 
     case 8:
       // execute program 2 here
-      if (checkTimer(startMillis, program2Time) == true){
+      if (checkTimer(startMillisPrograms, program2Time) == true){
           state = 9;
       } 
       break;
@@ -277,6 +283,7 @@ void loop() {
       Serial.println("Leave Waschanlange!");
       Serial.println("Go to state 0");
       state = 0;
+      break;
   }
 
   // solange auto in position und schranke unten: 3s timer
