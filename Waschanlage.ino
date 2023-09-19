@@ -30,6 +30,11 @@ const byte program2Btn = 13;
 // variables for the motors
 Servo servo;  // Objekt der Klasse "Servo erzeugen"
 const byte servoOutputPin = 8;
+Servo leftServo;
+const byte leftServoPin = 9;
+Servo rightServo;
+const byte rightServoPin = 10;
+
 
 // variables for the barrier
 bool barrierTrigger;
@@ -310,6 +315,36 @@ class UltrasonicSensor{
     
 };
 
+class Brushes{
+  private:
+    int test;
+    byte rightAngle = 90;
+    byte leftAngle = 90;
+  public:
+    Brushes(int t){
+      test = t;
+    }
+    void setBasicPos(){
+      rightAngle = 90;
+      leftAngle = 90;
+      rightServo.write(rightAngle);
+      leftServo.write(leftAngle);
+    }
+    void exeProgram1Step(){
+      if(rightAngle <= 0){
+        rightAngle = 180;
+      }
+      rightServo.write(rightAngle);
+      rightAngle -= 1;
+      
+      if(leftAngle >= 180){
+        leftAngle = 0;
+      }
+      leftServo.write(leftAngle);
+      leftAngle += 1;
+    }
+};
+
 bool checkPosition(int distance) {
   if (distance >= minShouldPos && distance <= maxShouldPos) {
     return true;
@@ -322,6 +357,7 @@ bool checkPosition(int distance) {
 Barrier barrier(minDangerPos, maxDangerPos);
 UltrasonicSensor sensor(triggerInput, echoInput);
 Display display(minShouldPos, maxShouldPos);
+Brushes brushes(42);
 Timer positionTimer(3000);
 Timer program1Timer(5000);
 Timer program2Timer(2000);
@@ -336,7 +372,10 @@ void setup() {
 
   // servo init
   servo.attach(servoOutputPin);  // Pin 8 als Ausgang benutzen
-  barrier.getAngle();
+  leftServo.attach(leftServoPin);
+  rightServo.attach(rightServoPin);
+  // barrier.getAngle();
+  brushes.setBasicPos();
 
   // display
   front.setI2CAddress(0x3C * 2);
@@ -428,7 +467,8 @@ void loop() {
       // execute program 1 here
       if (program1Timer.checkTimeOver() == true){
           state = 9;
-      } 
+      }
+      brushes.exeProgram1Step();
       break;
 
     case 7:
@@ -446,6 +486,7 @@ void loop() {
       break;
 
     case 9:
+      brushes.setBasicPos();
       Serial.println(F("Leave Waschanlange!"));
       Serial.println(F("Go to state 0"));
       state = 0;
