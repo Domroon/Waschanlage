@@ -343,6 +343,22 @@ class Brushes{
       leftServo.write(leftAngle);
       leftAngle += 1;
     }
+    void exeProgram2Step(){
+      if(rightAngle <= 0){
+        rightAngle = 180;
+      } else {
+        rightAngle = 0;
+      }
+      rightServo.write(rightAngle);
+      
+      if(leftAngle >= 180){
+        leftAngle = 0;
+      } else {
+        leftAngle = 180;
+      }
+      leftServo.write(leftAngle);
+      delay(1000);
+    }
 };
 
 bool checkPosition(int distance) {
@@ -359,8 +375,8 @@ UltrasonicSensor sensor(triggerInput, echoInput);
 Display display(minShouldPos, maxShouldPos);
 Brushes brushes(42);
 Timer positionTimer(3000);
-Timer program1Timer(5000);
-Timer program2Timer(2000);
+Timer program1Timer(8000);
+Timer program2Timer(8000);
 
 
 void setup() {
@@ -482,7 +498,8 @@ void loop() {
       // execute program 2 here
       if (program2Timer.checkTimeOver() == true){
           state = 9;
-      } 
+      }
+      brushes.exeProgram2Step();
       break;
 
     case 9:
