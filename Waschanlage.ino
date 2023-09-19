@@ -21,6 +21,7 @@ byte minShouldPos = 5;
 byte maxShouldPos = 7;
 byte minDangerPos = 7;
 byte maxDangerPos = 10;
+int beforeBarrier = 15;
 
 // inputs
 const byte barrierTriggerBtn = 2;
@@ -390,8 +391,9 @@ void setup() {
   servo.attach(servoOutputPin);  // Pin 8 als Ausgang benutzen
   leftServo.attach(leftServoPin);
   rightServo.attach(rightServoPin);
-  // barrier.getAngle();
   brushes.setBasicPos();
+
+  barrier.open();
 
   // display
   front.setI2CAddress(0x3C * 2);
@@ -405,7 +407,7 @@ void loop() {
   barrierTrigger = digitalRead(barrierTriggerBtn);
   
   // control barrier
-  barrier.openForIntervall(2000, distance, barrierTrigger);
+  // barrier.openForIntervall(2000, distance, barrierTrigger);
 
   // execute state
   switch(state) {
@@ -433,6 +435,7 @@ void loop() {
     case 2:
       if (checkPosition(distance) == true){
         if (positionTimer.checkTimeOver() == true){
+          barrier.close();
           state = 3;
         } 
       } else {
@@ -472,6 +475,7 @@ void loop() {
 
       break;
 
+    // in program 1 - show program screen
     case 5:
       Serial.println(F("In Program 1"));
       display.showProgram1Screen();
@@ -479,14 +483,15 @@ void loop() {
       state = 6;
       break;
 
+    // in program 1 - execute
     case 6:
-      // execute program 1 here
       if (program1Timer.checkTimeOver() == true){
           state = 9;
       }
       brushes.exeProgram1Step();
       break;
 
+    // in program 2 - show program screen
     case 7:
       Serial.println(F("In Program 2"));
       display.showProgram2Screen();
@@ -494,19 +499,29 @@ void loop() {
       state = 8;
       break;
 
+    // in program 2 - execute
     case 8:
-      // execute program 2 here
       if (program2Timer.checkTimeOver() == true){
           state = 9;
       }
       brushes.exeProgram2Step();
       break;
 
+    // show leave screen until car is in front of barrier
     case 9:
       brushes.setBasicPos();
+      barrier.open();
+      delay(1000); // wait until the motors have reached the end position
       Serial.println(F("Leave Waschanlange!"));
-      Serial.println(F("Go to state 0"));
-      state = 0;
+      display.showDriveOutScreen(distance);
+      state = 10;
+      break;
+
+    case 10:
+      if (distance >= beforeBarrier){
+        state = 0;
+        Serial.println(F("Go to state 0 (start)"));
+      }
       break;
   }
 
