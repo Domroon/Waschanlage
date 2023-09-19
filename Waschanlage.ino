@@ -17,7 +17,7 @@ static const unsigned char image_Button_18x18_bits[] U8X8_PROGMEM = {0xf8,0xff,0
 int distance;
 const byte triggerInput = 7;
 const byte echoInput = 6;
-byte minShouldPos = 5;
+byte minShouldPos = 4;
 byte maxShouldPos = 7;
 byte minDangerPos = 7;
 byte maxDangerPos = 10;
@@ -100,6 +100,18 @@ class Display{
     //     front.sendBuffer();
     //     }
     // }
+    void showInPositionScreen(){
+      front.clearBuffer();
+      front.setBitmapMode(1);
+      front.setFont(u8g2_font_helvB08_tr);
+      front.drawStr(4, 15, "IN POSITION!");
+      front.drawXBMP( 16, 37, 18, 18, image_Smile_18x18_bits);
+      front.sendBuffer();
+      // timerbit1 = true;
+      // if(millis() > timer1 + timeout1 && timerbit1 == true){
+      //   timer1 = millis();
+      // }
+    }
     void showCarPositioningScreen(int distance){
       front.clearBuffer();
       front.setBitmapMode(1);
@@ -111,15 +123,6 @@ class Display{
         front.drawXBMP(distance *(-1) + 125, 44, 9, 7, image_Pin_arrow_right_9x7_bits);
         timerbit1 = false;
         timer1 = millis();
-      }else if(distance >= minPos && distance <= maxPos){
-        front.setBitmapMode(1);
-        front.setFont(u8g2_font_helvB08_tr);
-        front.drawStr(4, 15, "IN POSITION!");
-        front.drawXBMP( 16, 37, 18, 18, image_Smile_18x18_bits);
-        timerbit1 = true;
-        if(millis() > timer1 + timeout1 && timerbit1 == true){
-          timer1 = millis();
-        }
       }else if(distance < minPos) {
         front.setBitmapMode(1);
         front.setFont(u8g2_font_helvB08_tr);
@@ -427,6 +430,7 @@ void loop() {
       Serial.print(positionTimer.getDuration());
       Serial.println(F(" ms"));
       // startMillisPosition = millis();
+      display.showInPositionScreen();
       positionTimer.start();
       state = 2;
       break;
