@@ -103,7 +103,7 @@ class Display{
     void showCarPositioningScreen(int distance){
       front.clearBuffer();
       front.setBitmapMode(1);
-      front.drawXBMP(distance*(-1) + 55, 17, 72, 73, image_car);
+      front.drawXBMP(distance*(-3) + 55, 17, 72, 73, image_car);
       if(distance >= maxPos){
         front.setBitmapMode(1);
         front.setFont(u8g2_font_helvB08_tr);
