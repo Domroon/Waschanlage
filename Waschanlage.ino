@@ -29,7 +29,7 @@ const byte program1Btn = 12;
 const byte program2Btn = 13;
 
 // variables for the motors
-Servo servo;  // Objekt der Klasse "Servo erzeugen"
+Servo servo;  // generate a object of the class "Servo"
 const byte servoOutputPin = 8;
 Servo leftServo;
 const byte leftServoPin = 9;
@@ -52,16 +52,16 @@ class Timer{
     Timer(unsigned int duration){
       timerDuration = duration;
     }
-    void start(){
+    void start(){ // start the timer             
       startMillis = millis();
     }
-    void restart(){
+    void restart(){ // restart the timer
       startMillis = millis();
     }
-    unsigned int getDuration(){
+    unsigned int getDuration(){ // return the duration of the timer
       return timerDuration;
     }
-    bool checkTimeOver() {;
+    bool checkTimeOver() {; // check if the timer is over and return a bool value
       if (millis() - startMillis >= timerDuration){
         return true;
       } else {
@@ -70,6 +70,9 @@ class Timer{
     }
 };
 
+// each method displays another picture on the OLED-Display
+// the first method is explained in detail
+// all of the following methods work like the first
 class Display{
   private:
   float timer1;
@@ -85,32 +88,13 @@ class Display{
       minPos = minShouldPos;
       maxPos = maxShouldPos;
     }
-    // void showWaitScreen(char infotext[]){
-    //   uint8_t progressbar = 0;
-    //   for(int i = 0; i < 21; i++){
-    //     progressbar = progressbar + 5;
-    //     front.clearBuffer();
-    //     front.setBitmapMode(1);
-    //     front.drawFrame(3, 2, 122, 60);
-    //     front.drawXBMP( 48, 13, 29, 14, image_FaceConfused_29x14_bits);
-    //     front.drawFrame(9, 48, 110, 10);
-    //     front.drawBox(11, 50, progressbar, 6);
-    //     front.setFont(u8g2_font_helvB08_tr);
-    //     front.drawStr(10, 44, infotext);
-    //     front.sendBuffer();
-    //     }
-    // }
-    void showInPositionScreen(){
-      front.clearBuffer();
-      front.setBitmapMode(1);
-      front.setFont(u8g2_font_helvB08_tr);
-      front.drawStr(4, 15, "IN POSITION!");
-      front.drawXBMP( 16, 37, 18, 18, image_Smile_18x18_bits);
-      front.sendBuffer();
-      // timerbit1 = true;
-      // if(millis() > timer1 + timeout1 && timerbit1 == true){
-      //   timer1 = millis();
-      // }
+    void showInPositionScreen(){ 
+      front.clearBuffer(); // clear whole screen
+      front.setBitmapMode(1); // set background color to transparent
+      front.setFont(u8g2_font_helvB08_tr); // set a letter font; all fonts are here: https://github.com/olikraus/u8g2/wiki/fntlist8
+      front.drawStr(4, 15, "IN POSITION!"); // draw text to position 4,15  
+      front.drawXBMP( 16, 37, 18, 18, "image_Smile_18x18_bits"); // set the stored picture to position 16,37 with width and height of 18
+      front.sendBuffer(); // sends the content of the memory frame buffer to the display
     }
     void showCarPositioningScreen(int distance){
       front.clearBuffer();
@@ -173,7 +157,6 @@ class Display{
       front.drawStr(44, 55, "im gange.");
       front.drawXBMP( 56, 26, 18, 18, image_Button_18x18_bits);
       front.sendBuffer();
-      // delay(2000);
     }
     void showProgram2Screen(){
       front.clearBuffer();
@@ -187,7 +170,6 @@ class Display{
       front.drawStr(44, 55, "im gange.");
       front.drawXBMP( 56, 26, 18, 18, image_Button_18x18_bits);
       front.sendBuffer();
-      // delay(2000);
     }
     void showDriveOutScreen(int distance){
       front.clearBuffer();
@@ -210,19 +192,18 @@ class Barrier{
     bool firstIteration;
     unsigned long startMillis;
     bool carUnderBarrier;
-    bool carUnderBarrierFirstIteration; // damit die Fehlermeldung nur einmal erscheint
-    int minDistance; // Sicherheitsbereich der Schranke
-    int maxDistance; // Sicherheitsbereich der Schranke
-    void setBarrierState(){
+    bool carUnderBarrierFirstIteration; // so that the error message only appears once
+    int minDistance; // Security area of the Barrier
+    int maxDistance; // Security area of the Barrier
+    void setBarrierState(){ // set if the barrier is open or close
       if(servo.read() >= 80){
-        // Serial.println(servo.read());
         isOpen = false;
       } else if (servo.read() <= 10){
         isOpen = true;
       }
     }
-    void checkSecurityDistance(int distance){
-      // befindet sich ein Auto unter der Schranke?
+    void checkSecurityDistance(int distance){ // check distance to the barrier
+      // is a car under the barrier?
       // min| -------- |max
       if(distance >= minDistance && distance <= maxDistance){
         carUnderBarrier = true;
@@ -248,8 +229,8 @@ class Barrier{
       setBarrierState();
       if (firstIteration && openTrigger && !isOpen) {
         startMillis = millis();
-        firstIteration = false; // start millis nur neu setzen, wenn dies der erste loop nach dem Trigger ist
-        servo.write(0); //Position 1 ansteuern mit dem Winkel 0° - Schranke öffnen
+        firstIteration = false; // set start millis only, when this is the first loop after the trigger
+        servo.write(0); // go to position 1 with an angle of 0° - open barrier
         Serial.print(F("Open barrier for "));
         Serial.print(timeInMs);
         Serial.println(F("ms"));
@@ -258,23 +239,21 @@ class Barrier{
 
       checkSecurityDistance(distance);      
 
-      if (timeInMs <= millis() - startMillis && !carUnderBarrier && isOpen) { // wenn die Zeit nach dem trigger, time_in_ms überschreitet
-        servo.write(125); //Position 2 ansteuern mit dem Winkel 90° - Schranke schließen
-        firstIteration = true; // Variable zurücksetzen um die Funktion erneut triggern zu können
+      if (timeInMs <= millis() - startMillis && !carUnderBarrier && isOpen) { // if the time after the trigger exceeds "time_in_ms"
+        servo.write(125); // go to position 2 with an angle of 90° -close barrier
+        firstIteration = true; // reset the variable to be able to trigger the function again
       }
 
-      // EIN EIGENE FUNKTION PACKEN?
-      // print error message 
       if(timeInMs <= millis() - startMillis && carUnderBarrier && carUnderBarrierFirstIteration && isOpen){
         Serial.println(F("A car is under the barrier."));
         carUnderBarrierFirstIteration = false;
       } 
     }
     void open(){
-        servo.write(20); //Position 1 ansteuern mit dem Winkel 0° - Schranke öffnen
+        servo.write(20); // go to position 1 with an angle of 0° - open barrier
     }
     void close(){
-        servo.write(125); //Position 2 ansteuern mit dem Winkel 90° - Schranke schließen
+        servo.write(125); // go to position 2 with an angle of 90° -close barrier
     }
     void getAngle(){
       Serial.print(F("Barrier Angle in degrees: "));
@@ -290,7 +269,7 @@ class UltrasonicSensor{
     int distance;
     void measure(){
       digitalWrite(trigger, LOW); 
-      delay(5); //
+      delay(5); 
       digitalWrite(trigger, HIGH); 
       delay(10); 
       digitalWrite(trigger, LOW);
