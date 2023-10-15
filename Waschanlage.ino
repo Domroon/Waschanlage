@@ -267,7 +267,7 @@ class UltrasonicSensor{
     int echo;
     int duration;
     int distance;
-    void measure(){
+    void measure(){ // determine duration that the sound waves needs from sensor to object and back
       digitalWrite(trigger, LOW); 
       delay(5); 
       digitalWrite(trigger, HIGH); 
@@ -282,7 +282,7 @@ class UltrasonicSensor{
       pinMode(trigger, OUTPUT);
       pinMode(echo, INPUT);
     }
-    int calculateDistance(){ 
+    int calculateDistance(){ // calculate the distance between object and sensor
       measure();
       distance = (duration/2) * 0.03432;
       if (distance >= 500 || distance <= 0){
@@ -291,7 +291,7 @@ class UltrasonicSensor{
         return distance;
       }
     }
-    void printDistance(){
+    void printDistance(){ // print the distance on the screen
       Serial.print(distance);
       Serial.println(F(" cm"));
     }
@@ -307,13 +307,13 @@ class Brushes{
     Brushes(int t){
       test = t;
     }
-    void setBasicPos(){
+    void setBasicPos(){ // go back to basic position
       rightAngle = 90;
       leftAngle = 90;
       rightServo.write(rightAngle);
       leftServo.write(leftAngle);
     }
-    void exeProgram1Step(){
+    void exeProgram1Step(){ // servo motors do only one step to not block the main loop
       if(rightAngle <= 0){
         rightAngle = 180;
       }
@@ -326,7 +326,7 @@ class Brushes{
       leftServo.write(leftAngle);
       leftAngle += 1;
     }
-    void exeProgram2Step(){
+    void exeProgram2Step(){ // servo motors do only one step to not block the main loop
       if(rightAngle <= 0){
         rightAngle = 180;
       } else {
@@ -344,7 +344,7 @@ class Brushes{
     }
 };
 
-bool checkPosition(int distance) {
+bool checkPosition(int distance) { // check if the car is at the right position
   if (distance >= minShouldPos && distance <= maxShouldPos) {
     return true;
   } else {
@@ -507,13 +507,4 @@ void loop() {
       }
       break;
   }
-
-  // solange auto in position und schranke unten: 3s timer
-  // wenn auto die position verlässt - timer zurück setzen
-  // wenn auto auch nach 3 sekunden stelle verlässt:
-  // programm von vorne starten
-
-  // anzeige: programm 1 oder 2
-  // auf benutzereingabe warten
-  // Programm 1 oder 2 durchführen
 }
